@@ -2,20 +2,20 @@
   "use strict";
   var express = require('express');
   var hbs = require('express-hbs');
-  var dataprovider = require('./dataprovider');
   var http = require('http');
   var path = require('path');
 
   var app = express();
 
-// all environments
-  app.engine('hbs', hbs.express3({
-                                   defaultLayout: __dirname + '/views/layout/default.hbs',
-                                   layoutsDir: __dirname + '/views/layout',
-                                   partialsDir: __dirname + '/views/partials',
-                                   extname: '.hbs'
-//                                    contentHelperName: 'content'
-                                 }));
+  var express_hbs_options = {
+    defaultLayout: __dirname + '/views/layout/default.hbs',
+    layoutsDir: __dirname + '/views/layout',
+    partialsDir: __dirname + '/views/partials',
+    extname: '.hbs'
+  };
+
+  // all environments
+  app.engine('hbs', hbs.express3(express_hbs_options));
   app.enable('view cache');
   app.set('views', __dirname + '/views');
   app.set('view engine', 'hbs');
@@ -38,10 +38,15 @@
     app.use(express.errorHandler());
   }
 
-  dataprovider(app);
+  app.set('dataproviderScripts', []);
+  require('./dataprovider')(app);
+
   app.get('/', function (req, res) {
 //    res.redirect('/index.html');
-    res.locals = {title: "Yet Another Dashboard"};
+    res.locals = {
+      title: "Yet Another Dashboard",
+      dataproviderScripts: app.get('dataproviderScripts')
+    };
     res.render('index', {});
   });
 
